@@ -232,6 +232,14 @@ impl<const EDITABLE: bool> TextArea<EDITABLE> {
 
 // --- MARK: METHODS
 impl<const EDITABLE: bool> TextArea<EDITABLE> {
+    pub fn editor(&self) -> &PlainEditor<BrushIndex> {
+        &self.editor
+    }
+
+    pub fn editor_mut(&mut self) -> &mut PlainEditor<BrushIndex> {
+        &mut self.editor
+    }
+
     /// Returns the current text of this text area.
     ///
     /// To update the text of an active text area, use [`reset_text`](Self::reset_text).
