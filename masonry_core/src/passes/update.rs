@@ -602,6 +602,21 @@ pub(crate) fn run_update_focus_pass(root: &mut RenderRoot) {
     let was_ime_active = root.global_state.is_ime_active;
 
     if was_ime_active && prev_focused != root.global_state.next_focused_widget {
+        // IME was active, but the next focused widget is going to receive the Ime::Disabled event
+        // sent by the platform. Synthesize an `Ime::Disabled` event here and send it to the widget
+        // about to be unfocused.
+
+        // HACK: It's not valid to send an event to a non-existent widget, so we check that the "previously"
+        // focused widget hasn't just been deleted.
+        // This means that if a parent widget was handling IME events, it won't get this event.
+        // We know that IME events bubbling is not the correct behaviour, but have chosen to keep it for consistency,
+        // as we also are planning to refactor how IME is delivered as we update to use Android View.
+        if let Some(prev_focused) = prev_focused
+            && root.has_widget(prev_focused)
+        {
+            run_on_text_event_pass(root, &TextEvent::Ime(Ime::Disabled));
+        }
+
         // Disable the IME, which was enabled specifically for this widget. Note that if the newly
         // focused widget also requires IME, we will request it again - this resets the platform's
         // state, ensuring that partial IME inputs do not "travel" between widgets
